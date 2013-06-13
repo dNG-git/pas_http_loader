@@ -1,0 +1,4 @@
+{
+ "pas_core_log_level": "warning",
+ "pas_core_log_name": "pas_http_server.log"
+}
