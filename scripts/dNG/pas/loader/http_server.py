@@ -119,7 +119,6 @@ Callback for initialisation.
 
 		Settings.read_file("{0}/settings/pas_global.json".format(Settings.get("path_data")))
 		Settings.read_file("{0}/settings/pas_core.json".format(Settings.get("path_data")), True)
-		Settings.read_file("{0}/settings/pas_http_server.json".format(Settings.get("path_data")), True)
 		if (args.additional_settings != None): Settings.read_file(args.additional_settings, True)
 
 		if (args.stop):
@@ -180,9 +179,6 @@ Stops the running server instance.
 
 			if (self.log_handler != None): self.log_handler.info("pas.http.core stopped listening")
 		#
-
-		if (self.cache_instance != None): self.cache_instance.return_instance()
-		if (self.log_handler != None): self.log_handler.return_instance()
 
 		return last_return
 	#
