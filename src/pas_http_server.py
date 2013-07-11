@@ -11,7 +11,7 @@ direct PAS
 Python Application Services
 ----------------------------------------------------------------------------
 (C) direct Netware Group - All rights reserved
-http://www.direct-netware.de/redirect.py?pas;http;loader
+http://www.direct-netware.de/redirect.py?pas;http
 
 The following license agreement remains valid unless any additions or
 changes are being made by direct Netware Group in a written form.
@@ -47,7 +47,6 @@ try:
 	http_server = HttpServer()
 	http_server.run()
 #
-except SystemExit: pass
 except Exception as handled_exception:
 #
 	if (http_server != None):

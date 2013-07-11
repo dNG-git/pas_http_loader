@@ -51,7 +51,7 @@ from dNG.pas.plugins.hooks import Hooks
 class HttpServer(Cli):
 #
 	"""
-"HttpServer" is responsible to start an HTTP aware server.
+"HttpServer" provides the command line for an HTTP aware server.
 
 :author:     direct Netware Group
 :copyright:  (C) direct Netware Group - All rights reserved
@@ -76,11 +76,6 @@ Constructor __init__(HttpServer)
 		"""
 Cache instance
 		"""
-		self.log_handler = None
-		"""
-The log_handler is called whenever debug messages should be logged or errors
-happened.
-		"""
 		self.server = None
 		"""
 Server thread
@@ -94,10 +89,11 @@ Timestamp of service initialisation
 		self.arg_parser.add_argument("--additionalSettings", action = "store", type = str, dest = "additional_settings")
 		self.arg_parser.add_argument("--stop", action = "store_true", dest = "stop")
 
-		Cli.register_run_callback(self.callback_run)
+		Cli.register_run_callback(self._callback_run)
+		Cli.register_shutdown_callback(self._callback_exit)
 	#
 
-	def callback_exit(self):
+	def _callback_exit(self):
 	#
 		"""
 Callback for application exit.
@@ -105,14 +101,20 @@ Callback for application exit.
 :since: v0.1.00
 		"""
 
-		Hooks.call("dNG.pas.status.shutdown")
-		self.stop()
+		if (self.server != None): self.stop()
+		Hooks.call("dNG.pas.Status.shutdown")
+
+		if (self.cache_instance != None): self.cache_instance.free()
+		Hooks.free()
+		if (self.log_handler != None): self.log_handler.info("pas.http.core stopped listening")
 	#
 
-	def callback_run(self, args):
+	def _callback_run(self, args):
 	#
 		"""
 Callback for initialisation.
+
+:param args: Parsed command line arguments
 
 :since: v1.0.0
 		"""
@@ -124,37 +126,38 @@ Callback for initialisation.
 		if (args.stop):
 		#
 			client = BusClient("pas_http")
-			client.request("dNG.pas.status.stop")
+			client.request("dNG.pas.Status.stop")
 			client.disconnect()
 		#
 		else:
 		#
 			self.cache_instance = NamedLoader.get_singleton("dNG.pas.data.Cache", False)
+			if (self.cache_instance != None): Settings.set_cache_instance(self.cache_instance)
+
 			self.log_handler = NamedLoader.get_singleton("dNG.pas.data.logging.LogHandler", False)
 
 			if (self.log_handler != None):
 			#
 				Hooks.set_log_handler(self.log_handler)
 				NamedLoader.set_log_handler(self.log_handler)
-				self.log_handler.debug("#echo(__FILEPATH__)# -http_server.callback_run(args)- (#echo(__LINE__)#)")
+				self.log_handler.debug("#echo(__FILEPATH__)# -HttpServer._callback_run(args)- (#echo(__LINE__)#)")
 			#
 
-			Cli.register_shutdown_callback(self.callback_exit)
-
 			Hooks.load("http")
-			Hooks.register("dNG.pas.status.getUptime", self.get_uptime)
-			Hooks.register("dNG.pas.status.stop", self.stop)
-			self.time_started = time()
+			Hooks.register("dNG.pas.Status.getTimeStarted", self.get_time_started)
+			Hooks.register("dNG.pas.Status.getUptime", self.get_uptime)
+			Hooks.register("dNG.pas.Status.stop", self.stop)
+			self.time_started = int(time())
 
 			http_server = AbstractHttpServer.get_instance()
 			self.server = BusServer("pas_http")
 
 			if (http_server != None):
 			#
-				Hooks.register("dNG.pas.status.startup", http_server.start)
-				Hooks.register("dNG.pas.status.shutdown", http_server.stop)
+				Hooks.register("dNG.pas.Status.startup", http_server.start)
+				Hooks.register("dNG.pas.Status.shutdown", http_server.stop)
 
-				Hooks.call("dNG.pas.status.startup")
+				Hooks.call("dNG.pas.Status.startup")
 				self.set_mainloop(self.server.run)
 			#
 		#
@@ -176,25 +179,12 @@ Stops the running server instance.
 		#
 			self.server.stop()
 			self.server = None
-
-			if (self.log_handler != None): self.log_handler.info("pas.http.core stopped listening")
 		#
 
 		return last_return
 	#
 
-	def get_time_started (self):
-	#
-		"""
-Returns the time (timestamp) this service had been initialized.
-
-:since: v1.0.0
-		"""
-
-		return self.time_started
-	#
-
-	def get_uptime (self, params = None, last_return = None):
+	def get_time_started(self, params = None, last_return = None):
 	#
 		"""
 Returns the time (timestamp) this service had been initialized.
@@ -202,11 +192,26 @@ Returns the time (timestamp) this service had been initialized.
 :param params: Parameter specified
 :param last_return: The return value from the last hook called.
 
-:return: (int) Unix timestamp; None if unknown
+:return: (int) Unix timestamp
+:since:  v1.0.0
+		"""
+
+		return self.time_started
+	#
+
+	def get_uptime(self, params = None, last_return = None):
+	#
+		"""
+Returns the time in seconds since this service had been initialized.
+
+:param params: Parameter specified
+:param last_return: The return value from the last hook called.
+
+:return: (int) Uptime in seconds
 :since:  v0.1.00
 		"""
 
-		return floor(self.get_time_started())
+		return int(floor(time() - self.time_started))
 	#
 #
 
