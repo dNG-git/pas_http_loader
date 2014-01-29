@@ -45,7 +45,7 @@ from dNG.pas.loader.cli import Cli
 from dNG.pas.module.named_loader import NamedLoader
 from dNG.pas.net.bus.client import Client as BusClient
 from dNG.pas.net.bus.server import Server as BusServer
-from dNG.pas.net.http import Server as AbstractHttpServer
+from dNG.pas.net.http import Server as _HttpServer
 from dNG.pas.plugins.hooks import Hooks
 
 class HttpServer(Cli):
@@ -104,7 +104,7 @@ Callback for application exit.
 		if (self.server != None): self.stop()
 		Hooks.call("dNG.pas.Status.shutdown")
 
-		if (self.cache_instance != None): self.cache_instance.free()
+		if (self.cache_instance != None): self.cache_instance.disable()
 		Hooks.free()
 		if (self.log_handler != None): self.log_handler.info("pas.http.core stopped listening")
 	#
@@ -121,11 +121,12 @@ Callback for initialisation.
 
 		Settings.read_file("{0}/settings/pas_global.json".format(Settings.get("path_data")))
 		Settings.read_file("{0}/settings/pas_core.json".format(Settings.get("path_data")), True)
+		Settings.read_file("{0}/settings/pas_http.json".format(Settings.get("path_data")), True)
 		if (args.additional_settings != None): Settings.read_file(args.additional_settings, True)
 
 		if (args.stop):
 		#
-			client = BusClient("pas_http")
+			client = BusClient("pas_http_bus")
 			client.request("dNG.pas.Status.stop")
 			client.disconnect()
 		#
@@ -149,8 +150,8 @@ Callback for initialisation.
 			Hooks.register("dNG.pas.Status.stop", self.stop)
 			self.time_started = int(time())
 
-			http_server = AbstractHttpServer.get_instance()
-			self.server = BusServer("pas_http")
+			http_server = _HttpServer.get_instance()
+			self.server = BusServer("pas_http_bus")
 
 			if (http_server != None):
 			#
