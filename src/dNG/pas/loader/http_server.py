@@ -45,7 +45,7 @@ from dNG.pas.loader.cli import Cli
 from dNG.pas.module.named_loader import NamedLoader
 from dNG.pas.net.bus.client import Client as BusClient
 from dNG.pas.net.bus.server import Server as BusServer
-from dNG.pas.net.http import Server as _HttpServer
+from dNG.pas.net.http.server_implementation import ServerImplementation as _HttpServer
 from dNG.pas.plugins.hooks import Hooks
 
 class HttpServer(Cli):
@@ -61,6 +61,8 @@ class HttpServer(Cli):
 :license:    http://www.direct-netware.de/redirect.py?licenses;gpl
              GNU General Public License 2
 	"""
+
+	# pylint: disable=unused-argument
 
 	def __init__(self):
 	#
