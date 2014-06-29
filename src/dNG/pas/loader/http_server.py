@@ -2,10 +2,6 @@
 ##j## BOF
 
 """
-dNG.pas.loader.HttpServer
-"""
-"""n// NOTE
-----------------------------------------------------------------------------
 direct PAS
 Python Application Services
 ----------------------------------------------------------------------------
@@ -33,11 +29,9 @@ http://www.direct-netware.de/redirect.py?licenses;gpl
 ----------------------------------------------------------------------------
 #echo(pasHttpLoaderVersion)#
 #echo(__FILEPATH__)#
-----------------------------------------------------------------------------
-NOTE_END //n"""
+"""
 
 from argparse import ArgumentParser
-from math import floor
 from time import time
 
 from dNG.pas.data.settings import Settings
@@ -46,9 +40,10 @@ from dNG.pas.module.named_loader import NamedLoader
 from dNG.pas.net.bus.client import Client as BusClient
 from dNG.pas.net.bus.server import Server as BusServer
 from dNG.pas.net.http.server_implementation import ServerImplementation as _HttpServer
-from dNG.pas.plugins.hooks import Hooks
+from dNG.pas.plugins.hook import Hook
+from .bus_mixin import BusMixin
 
-class HttpServer(Cli):
+class HttpServer(Cli, BusMixin):
 #
 	"""
 "HttpServer" provides the command line for an HTTP aware server.
@@ -73,6 +68,7 @@ Constructor __init__(HttpServer)
 		"""
 
 		Cli.__init__(self)
+		BusMixin.__init__(self)
 
 		self.cache_instance = None
 		"""
@@ -82,39 +78,19 @@ Cache instance
 		"""
 Server thread
 		"""
-		self.time_started = None
-		"""
-Timestamp of service initialisation
-		"""
 
 		self.arg_parser = ArgumentParser()
 		self.arg_parser.add_argument("--additionalSettings", action = "store", type = str, dest = "additional_settings")
 		self.arg_parser.add_argument("--stop", action = "store_true", dest = "stop")
 
-		Cli.register_run_callback(self._callback_run)
-		Cli.register_shutdown_callback(self._callback_exit)
+		Cli.register_run_callback(self._on_run)
+		Cli.register_shutdown_callback(self._on_shutdown)
 	#
 
-	def _callback_exit(self):
-	#
-		"""
-Callback for application exit.
-
-:since: v0.1.00
-		"""
-
-		if (self.server != None): self.stop()
-		Hooks.call("dNG.pas.Status.shutdown")
-
-		if (self.cache_instance != None): self.cache_instance.disable()
-		Hooks.free()
-		if (self.log_handler != None): self.log_handler.info("pas.http.core stopped listening")
-	#
-
-	def _callback_run(self, args):
+	def _on_run(self, args):
 	#
 		"""
-Callback for initialisation.
+Callback for execution.
 
 :param args: Parsed command line arguments
 
@@ -129,8 +105,13 @@ Callback for initialisation.
 		if (args.stop):
 		#
 			client = BusClient("pas_http_bus")
+
+			pid = client.request("dNG.pas.Status.getOSPid")
 			client.request("dNG.pas.Status.stop")
+
 			client.disconnect()
+
+			self._wait_for_os_pid(pid)
 		#
 		else:
 		#
@@ -141,29 +122,47 @@ Callback for initialisation.
 
 			if (self.log_handler != None):
 			#
-				Hooks.set_log_handler(self.log_handler)
+				Hook.set_log_handler(self.log_handler)
 				NamedLoader.set_log_handler(self.log_handler)
-				self.log_handler.debug("#echo(__FILEPATH__)# -HttpServer._callback_run(args)- (#echo(__LINE__)#)")
 			#
 
-			Hooks.load("http")
-			Hooks.register("dNG.pas.Status.getTimeStarted", self.get_time_started)
-			Hooks.register("dNG.pas.Status.getUptime", self.get_uptime)
-			Hooks.register("dNG.pas.Status.stop", self.stop)
-			self.time_started = int(time())
+			Hook.load("http")
+			Hook.register("dNG.pas.Status.getOSPid", self.get_os_pid)
+			Hook.register("dNG.pas.Status.getTimeStarted", self.get_time_started)
+			Hook.register("dNG.pas.Status.getUptime", self.get_uptime)
+			Hook.register("dNG.pas.Status.stop", self.stop)
+			self._set_time_started(time())
 
 			http_server = _HttpServer.get_instance()
 			self.server = BusServer("pas_http_bus")
 
 			if (http_server != None):
 			#
-				Hooks.register("dNG.pas.Status.startup", http_server.start)
-				Hooks.register("dNG.pas.Status.shutdown", http_server.stop)
+				Hook.register("dNG.pas.Status.onStartup", http_server.start)
+				Hook.register("dNG.pas.Status.onShutdown", http_server.stop)
 
-				Hooks.call("dNG.pas.Status.startup")
+				if (self.log_handler != None): self.log_handler.info("pas.http starts listening", context = "pas_http_site")
+				Hook.call("dNG.pas.Status.onStartup")
+
 				self.set_mainloop(self.server.run)
 			#
 		#
+	#
+
+	def _on_shutdown(self):
+	#
+		"""
+Callback for shutdown.
+
+:since: v0.1.00
+		"""
+
+		if (self.server != None): self.stop()
+		Hook.call("dNG.pas.Status.onShutdown")
+
+		if (self.cache_instance != None): self.cache_instance.disable()
+		Hook.free()
+		if (self.log_handler != None): self.log_handler.info("pas.http stopped listening", context = "pas_http_site")
 	#
 
 	def stop(self, params = None, last_return = None):
@@ -185,36 +184,6 @@ Stops the running server instance.
 		#
 
 		return last_return
-	#
-
-	def get_time_started(self, params = None, last_return = None):
-	#
-		"""
-Returns the time (timestamp) this service had been initialized.
-
-:param params: Parameter specified
-:param last_return: The return value from the last hook called.
-
-:return: (int) Unix timestamp
-:since:  v1.0.0
-		"""
-
-		return self.time_started
-	#
-
-	def get_uptime(self, params = None, last_return = None):
-	#
-		"""
-Returns the time in seconds since this service had been initialized.
-
-:param params: Parameter specified
-:param last_return: The return value from the last hook called.
-
-:return: (int) Uptime in seconds
-:since:  v0.1.00
-		"""
-
-		return int(floor(time() - self.time_started))
 	#
 #
 
