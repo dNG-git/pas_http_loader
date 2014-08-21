@@ -115,7 +115,7 @@ Callback for execution.
 		#
 		else:
 		#
-			self.cache_instance = NamedLoader.get_singleton("dNG.pas.data.Cache", False)
+			self.cache_instance = NamedLoader.get_singleton("dNG.pas.data.cache.Content", False)
 			if (self.cache_instance != None): Settings.set_cache_instance(self.cache_instance)
 
 			self.log_handler = NamedLoader.get_singleton("dNG.pas.data.logging.LogHandler", False)
@@ -157,12 +157,10 @@ Callback for shutdown.
 :since: v0.1.00
 		"""
 
-		if (self.server != None): self.stop()
 		Hook.call("dNG.pas.Status.onShutdown")
 
 		if (self.cache_instance != None): self.cache_instance.disable()
 		Hook.free()
-		if (self.log_handler != None): self.log_handler.info("pas.http stopped listening", context = "pas_http_site")
 	#
 
 	def stop(self, params = None, last_return = None):
@@ -181,6 +179,8 @@ Stops the running server instance.
 		#
 			self.server.stop()
 			self.server = None
+
+			if (self.log_handler != None): self.log_handler.info("pas.http stopped listening", context = "pas_http_site")
 		#
 
 		return last_return
