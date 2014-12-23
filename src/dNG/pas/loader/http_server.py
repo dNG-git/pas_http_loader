@@ -94,13 +94,13 @@ Callback for execution.
 
 :param args: Parsed command line arguments
 
-:since: v1.0.0
+:since: v0.1.00
 		"""
 
 		Settings.read_file("{0}/settings/pas_global.json".format(Settings.get("path_data")))
 		Settings.read_file("{0}/settings/pas_core.json".format(Settings.get("path_data")), True)
 		Settings.read_file("{0}/settings/pas_http.json".format(Settings.get("path_data")), True)
-		if (args.additional_settings != None): Settings.read_file(args.additional_settings, True)
+		if (args.additional_settings is not None): Settings.read_file(args.additional_settings, True)
 
 		if (args.stop):
 		#
@@ -116,11 +116,11 @@ Callback for execution.
 		else:
 		#
 			self.cache_instance = NamedLoader.get_singleton("dNG.pas.data.cache.Content", False)
-			if (self.cache_instance != None): Settings.set_cache_instance(self.cache_instance)
+			if (self.cache_instance is not None): Settings.set_cache_instance(self.cache_instance)
 
 			self.log_handler = NamedLoader.get_singleton("dNG.pas.data.logging.LogHandler", False)
 
-			if (self.log_handler != None):
+			if (self.log_handler is not None):
 			#
 				Hook.set_log_handler(self.log_handler)
 				NamedLoader.set_log_handler(self.log_handler)
@@ -136,12 +136,12 @@ Callback for execution.
 			http_server = _HttpServer.get_instance()
 			self.server = BusServer("pas_http_bus")
 
-			if (http_server != None):
+			if (http_server is not None):
 			#
 				Hook.register("dNG.pas.Status.onStartup", http_server.start)
 				Hook.register("dNG.pas.Status.onShutdown", http_server.stop)
 
-				if (self.log_handler != None): self.log_handler.info("pas.http starts listening", context = "pas_http_site")
+				if (self.log_handler is not None): self.log_handler.info("pas.http starts listening", context = "pas_http_site")
 				Hook.call("dNG.pas.Status.onStartup")
 
 				self.set_mainloop(self.server.run)
@@ -159,7 +159,7 @@ Callback for shutdown.
 
 		Hook.call("dNG.pas.Status.onShutdown")
 
-		if (self.cache_instance != None): self.cache_instance.disable()
+		if (self.cache_instance is not None): self.cache_instance.disable()
 		Hook.free()
 	#
 
@@ -175,12 +175,12 @@ Stops the running server instance.
 :since:  v0.1.00
 		"""
 
-		if (self.server != None):
+		if (self.server is not None):
 		#
 			self.server.stop()
 			self.server = None
 
-			if (self.log_handler != None): self.log_handler.info("pas.http stopped listening", context = "pas_http_site")
+			if (self.log_handler is not None): self.log_handler.info("pas.http stopped listening", context = "pas_http_site")
 		#
 
 		return last_return

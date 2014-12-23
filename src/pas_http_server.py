@@ -44,7 +44,7 @@ try:
 #
 except Exception as handled_exception:
 #
-	if (http_server != None):
+	if (http_server is not None):
 	#
 		http_server.error(handled_exception)
 		http_server.stop()
