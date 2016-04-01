@@ -51,7 +51,7 @@ class HttpServer(Cli, BusMixin):
 :author:     direct Netware Group
 :copyright:  (C) direct Netware Group - All rights reserved
 :package:    pas.http
-:subpackage: core
+:subpackage: loader
 :since:      v0.1.00
 :license:    https://www.direct-netware.de/redirect?licenses;gpl
              GNU General Public License 2
@@ -81,6 +81,7 @@ Server thread
 
 		self.arg_parser = ArgumentParser()
 		self.arg_parser.add_argument("--additionalSettings", action = "store", type = str, dest = "additional_settings")
+		self.arg_parser.add_argument("--reloadPlugins", action = "store_true", dest = "reload_plugins")
 		self.arg_parser.add_argument("--stop", action = "store_true", dest = "stop")
 
 		Cli.register_run_callback(self._on_run)
@@ -102,6 +103,11 @@ Callback for execution.
 		Settings.read_file("{0}/settings/pas_http.json".format(Settings.get("path_data")), True)
 		if (args.additional_settings is not None): Settings.read_file(args.additional_settings, True)
 
+		if (args.reload_plugins):
+		#
+			client = BusClient("pas_http_bus")
+			client.request("dNG.pas.Plugins.reload")
+		#
 		if (args.stop):
 		#
 			client = BusClient("pas_http_bus")
