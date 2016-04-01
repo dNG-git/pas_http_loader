@@ -7,7 +7,7 @@ direct PAS
 Python Application Services
 ----------------------------------------------------------------------------
 (C) direct Netware Group - All rights reserved
-https://www.direct-netware.de/redirect?pas;http
+https://www.direct-netware.de/redirect?pas;http;loader
 
 The following license agreement remains valid unless any additions or
 changes are being made by direct Netware Group in a written form.
