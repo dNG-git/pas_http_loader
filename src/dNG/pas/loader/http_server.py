@@ -108,7 +108,7 @@ Callback for execution.
 			client = BusClient("pas_http_bus")
 			client.request("dNG.pas.Plugins.reload")
 		#
-		if (args.stop):
+		elif (args.stop):
 		#
 			client = BusClient("pas_http_bus")
 
