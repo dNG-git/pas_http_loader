@@ -34,13 +34,14 @@ https://www.direct-netware.de/redirect?licenses;gpl
 from argparse import ArgumentParser
 from time import time
 
-from dNG.pas.data.settings import Settings
-from dNG.pas.loader.cli import Cli
-from dNG.pas.module.named_loader import NamedLoader
-from dNG.pas.net.bus.client import Client as BusClient
-from dNG.pas.net.bus.server import Server as BusServer
-from dNG.pas.net.http.server_implementation import ServerImplementation as _HttpServer
-from dNG.pas.plugins.hook import Hook
+from dNG.data.settings import Settings
+from dNG.loader.cli import Cli
+from dNG.module.named_loader import NamedLoader
+from dNG.net.bus.client import Client as BusClient
+from dNG.net.bus.server import Server as BusServer
+from dNG.net.http.server_implementation import ServerImplementation as _HttpServer
+from dNG.plugins.hook import Hook
+
 from .bus_mixin import BusMixin
 
 class HttpServer(Cli, BusMixin):
@@ -48,11 +49,11 @@ class HttpServer(Cli, BusMixin):
 	"""
 "HttpServer" provides the command line for an HTTP aware server.
 
-:author:     direct Netware Group
+:author:     direct Netware Group et al.
 :copyright:  (C) direct Netware Group - All rights reserved
 :package:    pas.http
 :subpackage: loader
-:since:      v0.1.00
+:since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;gpl
              GNU General Public License 2
 	"""
@@ -64,7 +65,7 @@ class HttpServer(Cli, BusMixin):
 		"""
 Constructor __init__(HttpServer)
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		Cli.__init__(self)
@@ -95,7 +96,7 @@ Callback for execution.
 
 :param args: Parsed command line arguments
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		Settings.read_file("{0}/settings/pas_global.json".format(Settings.get("path_data")))
@@ -119,10 +120,10 @@ Callback for execution.
 		#
 		else:
 		#
-			self.cache_instance = NamedLoader.get_singleton("dNG.pas.data.cache.Content", False)
+			self.cache_instance = NamedLoader.get_singleton("dNG.data.cache.Content", False)
 			if (self.cache_instance is not None): Settings.set_cache_instance(self.cache_instance)
 
-			self.log_handler = NamedLoader.get_singleton("dNG.pas.data.logging.LogHandler", False)
+			self.log_handler = NamedLoader.get_singleton("dNG.data.logging.LogHandler", False)
 
 			if (self.log_handler is not None):
 			#
@@ -158,7 +159,7 @@ Callback for execution.
 		"""
 Callback for shutdown.
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		Hook.call("dNG.pas.Status.onShutdown")
@@ -176,7 +177,7 @@ Stops the running server instance.
 :param last_return: The return value from the last hook called.
 
 :return: (None) None to stop communication after this call
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		if (self.server is not None):

@@ -36,7 +36,7 @@ https://www.direct-netware.de/redirect?licenses;gpl
 ----------------------------------------------------------------------------
 NOTE_END //n"""
 
-from dNG.pas.net.http.server_wsgi import ServerWsgi
+from dNG.net.http.server_wsgi import ServerWsgi
 application = ServerWsgi
 
 ##j## EOF

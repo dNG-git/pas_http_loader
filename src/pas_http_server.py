@@ -32,7 +32,7 @@ https://www.direct-netware.de/redirect?licenses;gpl
 #echo(__FILEPATH__)#
 """
 
-from dNG.pas.loader.http_server import HttpServer
+from dNG.loader.http_server import HttpServer
 import sys
 
 http_server = None
