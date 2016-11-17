@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##j## BOF
 
 """
 direct PAS
@@ -38,18 +37,11 @@ import sys
 http_server = None
 
 try:
-#
-	http_server = HttpServer()
-	http_server.run()
-#
+    http_server = HttpServer()
+    http_server.run()
 except Exception as handled_exception:
+    if (http_server is not None):
+        http_server.error(handled_exception)
+        http_server.stop()
+    else: sys.stderr.write("{0!r}".format(sys.exc_info()))
 #
-	if (http_server is not None):
-	#
-		http_server.error(handled_exception)
-		http_server.stop()
-	#
-	else: sys.stderr.write("{0!r}".format(sys.exc_info()))
-#
-
-##j## EOF

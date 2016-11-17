@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-##j## BOF
 
 """
 WSGI script to provide the application object.
@@ -38,5 +37,3 @@ NOTE_END //n"""
 
 from dNG.net.http.server_wsgi import ServerWsgi
 application = ServerWsgi
-
-##j## EOF

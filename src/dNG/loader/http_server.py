@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-##j## BOF
 
 """
 direct PAS
@@ -45,8 +44,7 @@ from dNG.plugins.hook import Hook
 from .bus_mixin import BusMixin
 
 class HttpServer(Cli, BusMixin):
-#
-	"""
+    """
 "HttpServer" provides the command line for an HTTP aware server.
 
 :author:     direct Netware Group et al.
@@ -56,121 +54,110 @@ class HttpServer(Cli, BusMixin):
 :since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;gpl
              GNU General Public License 2
-	"""
+    """
 
-	# pylint: disable=unused-argument
+    # pylint: disable=unused-argument
 
-	def __init__(self):
-	#
-		"""
+    def __init__(self):
+        """
 Constructor __init__(HttpServer)
 
 :since: v0.2.00
-		"""
+        """
 
-		Cli.__init__(self)
-		BusMixin.__init__(self)
+        Cli.__init__(self)
+        BusMixin.__init__(self)
 
-		self.cache_instance = None
-		"""
+        self.cache_instance = None
+        """
 Cache instance
-		"""
-		self.server = None
-		"""
+        """
+        self.server = None
+        """
 Server thread
-		"""
+        """
 
-		self.arg_parser = ArgumentParser()
-		self.arg_parser.add_argument("--additionalSettings", action = "store", type = str, dest = "additional_settings")
-		self.arg_parser.add_argument("--reloadPlugins", action = "store_true", dest = "reload_plugins")
-		self.arg_parser.add_argument("--stop", action = "store_true", dest = "stop")
+        self.arg_parser = ArgumentParser()
+        self.arg_parser.add_argument("--additionalSettings", action = "store", type = str, dest = "additional_settings")
+        self.arg_parser.add_argument("--reloadPlugins", action = "store_true", dest = "reload_plugins")
+        self.arg_parser.add_argument("--stop", action = "store_true", dest = "stop")
 
-		Cli.register_run_callback(self._on_run)
-		Cli.register_shutdown_callback(self._on_shutdown)
-	#
+        Cli.register_run_callback(self._on_run)
+        Cli.register_shutdown_callback(self._on_shutdown)
+    #
 
-	def _on_run(self, args):
-	#
-		"""
+    def _on_run(self, args):
+        """
 Callback for execution.
 
 :param args: Parsed command line arguments
 
 :since: v0.2.00
-		"""
+        """
 
-		Settings.read_file("{0}/settings/pas_global.json".format(Settings.get("path_data")))
-		Settings.read_file("{0}/settings/pas_core.json".format(Settings.get("path_data")), True)
-		Settings.read_file("{0}/settings/pas_http.json".format(Settings.get("path_data")), True)
-		if (args.additional_settings is not None): Settings.read_file(args.additional_settings, True)
+        Settings.read_file("{0}/settings/pas_global.json".format(Settings.get("path_data")))
+        Settings.read_file("{0}/settings/pas_core.json".format(Settings.get("path_data")), True)
+        Settings.read_file("{0}/settings/pas_http.json".format(Settings.get("path_data")), True)
+        if (args.additional_settings is not None): Settings.read_file(args.additional_settings, True)
 
-		if (args.reload_plugins):
-		#
-			client = BusClient("pas_http_bus")
-			client.request("dNG.pas.Plugins.reload")
-		#
-		elif (args.stop):
-		#
-			client = BusClient("pas_http_bus")
+        if (args.reload_plugins):
+            client = BusClient("pas_http_bus")
+            client.request("dNG.pas.Plugins.reload")
+        elif (args.stop):
+            client = BusClient("pas_http_bus")
 
-			pid = client.request("dNG.pas.Status.getOSPid")
-			client.request("dNG.pas.Status.stop")
+            pid = client.request("dNG.pas.Status.getOSPid")
+            client.request("dNG.pas.Status.stop")
 
-			self._wait_for_os_pid(pid)
-		#
-		else:
-		#
-			self.cache_instance = NamedLoader.get_singleton("dNG.data.cache.Content", False)
-			if (self.cache_instance is not None): Settings.set_cache_instance(self.cache_instance)
+            self._wait_for_os_pid(pid)
+        else:
+            self.cache_instance = NamedLoader.get_singleton("dNG.data.cache.Content", False)
+            if (self.cache_instance is not None): Settings.set_cache_instance(self.cache_instance)
 
-			self.log_handler = NamedLoader.get_singleton("dNG.data.logging.LogHandler", False)
+            self.log_handler = NamedLoader.get_singleton("dNG.data.logging.LogHandler", False)
 
-			if (self.log_handler is not None):
-			#
-				Hook.set_log_handler(self.log_handler)
-				NamedLoader.set_log_handler(self.log_handler)
-			#
+            if (self.log_handler is not None):
+                Hook.set_log_handler(self.log_handler)
+                NamedLoader.set_log_handler(self.log_handler)
+            #
 
-			Hook.load("http")
-			Hook.register("dNG.pas.Status.getOSPid", self.get_os_pid)
-			Hook.register("dNG.pas.Status.getTimeStarted", self.get_time_started)
-			Hook.register("dNG.pas.Status.getUptime", self.get_uptime)
-			Hook.register("dNG.pas.Status.stop", self.stop)
-			self._set_time_started(time())
+            Hook.load("http")
+            Hook.register("dNG.pas.Status.getOSPid", self.get_os_pid)
+            Hook.register("dNG.pas.Status.getTimeStarted", self.get_time_started)
+            Hook.register("dNG.pas.Status.getUptime", self.get_uptime)
+            Hook.register("dNG.pas.Status.stop", self.stop)
+            self._set_time_started(time())
 
-			http_server = _HttpServer.get_instance()
-			self.server = BusServer("pas_http_bus")
+            http_server = _HttpServer.get_instance()
+            self.server = BusServer("pas_http_bus")
 
-			if (http_server is not None):
-			#
-				Hook.register("dNG.pas.Status.onStartup", http_server.start)
-				Hook.register("dNG.pas.Status.onShutdown", http_server.stop)
+            if (http_server is not None):
+                Hook.register("dNG.pas.Status.onStartup", http_server.start)
+                Hook.register("dNG.pas.Status.onShutdown", http_server.stop)
 
-				if (self.log_handler is not None): self.log_handler.info("pas.http starts listening", context = "pas_http_site")
-				Hook.call("dNG.pas.Status.onStartup")
+                if (self.log_handler is not None): self.log_handler.info("pas.http starts listening", context = "pas_http_site")
+                Hook.call("dNG.pas.Status.onStartup")
 
-				self.set_mainloop(self.server.run)
-			#
-		#
-	#
+                self.set_mainloop(self.server.run)
+            #
+        #
+    #
 
-	def _on_shutdown(self):
-	#
-		"""
+    def _on_shutdown(self):
+        """
 Callback for shutdown.
 
 :since: v0.2.00
-		"""
+        """
 
-		Hook.call("dNG.pas.Status.onShutdown")
+        Hook.call("dNG.pas.Status.onShutdown")
 
-		if (self.cache_instance is not None): self.cache_instance.disable()
-		Hook.free()
-	#
+        if (self.cache_instance is not None): self.cache_instance.disable()
+        Hook.free()
+    #
 
-	def stop(self, params = None, last_return = None):
-	#
-		"""
+    def stop(self, params = None, last_return = None):
+        """
 Stops the running server instance.
 
 :param params: Parameter specified
@@ -178,18 +165,15 @@ Stops the running server instance.
 
 :return: (None) None to stop communication after this call
 :since:  v0.2.00
-		"""
+        """
 
-		if (self.server is not None):
-		#
-			self.server.stop()
-			self.server = None
+        if (self.server is not None):
+            self.server.stop()
+            self.server = None
 
-			if (self.log_handler is not None): self.log_handler.info("pas.http stopped listening", context = "pas_http_site")
-		#
+            if (self.log_handler is not None): self.log_handler.info("pas.http stopped listening", context = "pas_http_site")
+        #
 
-		return last_return
-	#
+        return last_return
+    #
 #
-
-##j## EOF
