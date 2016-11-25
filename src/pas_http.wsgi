@@ -3,8 +3,7 @@
 """
 WSGI script to provide the application object.
 """
-"""n// NOTE
-----------------------------------------------------------------------------
+"""
 direct PAS
 Python Application Services
 ----------------------------------------------------------------------------
@@ -32,8 +31,7 @@ https://www.direct-netware.de/redirect?licenses;gpl
 ----------------------------------------------------------------------------
 #echo(pasHttpLoaderVersion)#
 #echo(__FILEPATH__)#
-----------------------------------------------------------------------------
-NOTE_END //n"""
+"""
 
 from dNG.net.http.server_wsgi import ServerWsgi
 application = ServerWsgi
